@@ -13,10 +13,15 @@ const Course = sequelize.define("Course", {
     price: { type: DataTypes.FLOAT, allowNull: false },
     uploadPaymentDone: { type: DataTypes.BOOLEAN, defaultValue: false },
     // models/Course.js
-isApproved: {
-  type: DataTypes.BOOLEAN,
-  defaultValue: false
+status: {
+  type: DataTypes.ENUM("pending", "approved", "rejected"),
+  defaultValue: "pending"
+},
+rejectionReason: {
+  type: DataTypes.TEXT,
+  allowNull: true
 }
+
 
 });
 

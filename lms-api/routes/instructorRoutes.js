@@ -100,5 +100,14 @@ router.post("/upload-material/:courseId", auth, instructorOnly, async (req, res)
     res.status(500).json({ error: err.message });
   }
 });
+router.get("/my-courses", auth, instructorOnly, async (req, res) => {
+  const courses = await Course.findAll({
+    where: { instructorId: req.user.id },
+    attributes: ["id", "title", "status", "rejectionReason"]
+  });
+
+  res.json(courses);
+});
+
 
 module.exports = router;

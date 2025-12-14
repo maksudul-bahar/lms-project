@@ -23,6 +23,8 @@ const instructorPaymentRoutes = require("./routes/instructorPaymentRoutes");
 const completionRoutes = require("./routes/completionRoutes");
 const certificateRoutes = require("./routes/certificateRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const learnerRoutes = require("./routes/learnerRoutes");
+
 
 
 
@@ -37,6 +39,7 @@ app.use("/instructor/payments", instructorPaymentRoutes);
 app.use("/completion", completionRoutes);
 app.use("/certificate", certificateRoutes);
 app.use("/admin", adminRoutes);
+app.use("/learner", learnerRoutes);
 
 
 

@@ -8,13 +8,16 @@ const User = require("../models/User");
 
 const auth = require("../middleware/authMiddleware");
 
+
+
+
 // ===============================
-// List approved courses (PUBLIC)
+// List all approved courses (public)
 // ===============================
 router.get("/", async (req, res) => {
   try {
     const courses = await Course.findAll({
-      where: { isApproved: true },
+      where: { status: "approved" },   // ✅ FIX HERE
       attributes: ["id", "title", "description", "price"],
       include: {
         model: User,
@@ -27,6 +30,7 @@ router.get("/", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // ===============================
 // Get single course with materials
@@ -48,11 +52,10 @@ router.get("/:id", auth, async (req, res) => {
     }
 
     // ⛔ Course must be approved
-    if (!course.isApproved && user.role !== "admin") {
-      return res.status(403).json({
-        error: "Course not approved yet"
-      });
-    }
+    if (course.status !== "approved" && req.user.role !== "admin") {
+  return res.status(403).json({ error: "Course not approved" });
+}
+
 
     // ⛔ Learner must purchase
     if (user.role === "learner") {
