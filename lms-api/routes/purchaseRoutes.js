@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const auth = require("../middleware/authMiddleware");
 
-
 const Purchase = require("../models/Purchase");
 const Course = require("../models/Course");
 const InstructorTransaction = require("../models/InstructorTransaction");
@@ -21,29 +20,36 @@ router.post("/buy/:courseId", auth, async (req, res) => {
 
     // Only learners
     if (user.role !== "learner") {
-      return res.status(403).json({ error: "Only learners can buy courses" });
+      return res.status(403).json({
+        error: "Only learners can buy courses"
+      });
     }
 
     // Check course
     const course = await Course.findByPk(courseId);
     if (!course) {
-      return res.status(404).json({ error: "Course not found" });
+      return res.status(404).json({
+        error: "Course not found"
+      });
+    }
+
+    // Course must be approved
+    if (course.status !== "approved") {
+      return res.status(403).json({
+        error: "Course is not approved yet"
+      });
     }
 
     // Already purchased?
     const existing = await Purchase.findOne({
       where: { userId: user.id, courseId }
     });
+
     if (existing && existing.status === "success") {
-      return res.json({ message: "You already purchased this course" });
+      return res.json({
+        message: "You already purchased this course"
+      });
     }
-
-    if (!course.isApproved) {
-  return res.status(403).json({
-    error: "Course is not approved yet"
-  });
-}
-
 
     // Bank info check
     if (!user.bankAccountNumber || !secret) {
@@ -65,8 +71,10 @@ router.post("/buy/:courseId", auth, async (req, res) => {
       }
     );
 
-    if (bankResp.data.error) {
-      return res.status(400).json({ error: bankResp.data.error });
+    if (bankResp.data?.error) {
+      return res.status(400).json({
+        error: bankResp.data.error
+      });
     }
 
     // -------------------------------
@@ -79,13 +87,13 @@ router.post("/buy/:courseId", auth, async (req, res) => {
     });
 
     // -------------------------------
-    // Create LMS instructor transaction
+    // Instructor payout record (80%)
     // -------------------------------
     await InstructorTransaction.create({
       instructor_id: course.instructorId,
       course_id: course.id,
-      amount: course.price,
-      status: "pending"
+      amount: course.price * 0.8,
+      status: "completed"
     });
 
     res.json({
@@ -94,8 +102,11 @@ router.post("/buy/:courseId", auth, async (req, res) => {
     });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error("Purchase error:", err.message);
+    res.status(500).json({
+      error: "Purchase failed",
+      details: err.message
+    });
   }
 });
 

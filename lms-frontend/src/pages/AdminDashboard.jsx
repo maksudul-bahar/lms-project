@@ -1,159 +1,254 @@
 import { useEffect, useState } from "react";
-import api from "../api/axios";
+import {
+  getApprovedLearners,
+  getApprovedInstructors,
+  getPendingInstructors,
+  approveInstructor,
+  getPendingCourses,
+  approveCourse,
+  getApprovedCourses,
+  getPayoutRequests,
+  approvePayout
+} from "../api/admin";
+import { logout } from "../utils/logout";
 
-
+const titleMap = {
+  learners: "Learners",
+  instructors: "Instructors",
+  pending_instructors: "Instructor Requests",
+  pending_courses: "Pending Courses",
+  approved_courses: "Approved Courses",
+  payouts: "Payout Requests",
+};
 
 export default function AdminDashboard() {
+  const [active, setActive] = useState("learners");
+  const [loading, setLoading] = useState(true);
+
+  const [learners, setLearners] = useState([]);
+  const [instructors, setInstructors] = useState([]);
   const [pendingInstructors, setPendingInstructors] = useState([]);
   const [pendingCourses, setPendingCourses] = useState([]);
-  const [approvedLearners, setApprovedLearners] = useState([]);
-  const [approvedInstructors, setApprovedInstructors] = useState([]);
   const [approvedCourses, setApprovedCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [payouts, setPayouts] = useState([]);
 
-  // ===============================
-  // Fetch all admin data
-  // ===============================
-  const fetchAdminData = async () => {
+  const loadData = async () => {
     try {
       setLoading(true);
-
-      const [
-        pendingInstRes,
-        pendingCourseRes,
-        learnersRes,
-        instructorsRes,
-        coursesRes
-      ] = await Promise.all([
-        api.get("/admin/pending-instructors"),
-        api.get("/admin/pending-courses"),
-        api.get("/admin/approved-learners"),
-        api.get("/admin/approved-instructors"),
-        api.get("/admin/approved-courses")
+      const [l, i, pi, pc, ac, pr] = await Promise.all([
+        getApprovedLearners(),
+        getApprovedInstructors(),
+        getPendingInstructors(),
+        getPendingCourses(),
+        getApprovedCourses(),
+        getPayoutRequests(),
       ]);
 
-      setPendingInstructors(pendingInstRes.data);
-      setPendingCourses(pendingCourseRes.data);
-      setApprovedLearners(learnersRes.data);
-      setApprovedInstructors(instructorsRes.data);
-      setApprovedCourses(coursesRes.data);
-
-      setError("");
-    } catch (err) {
-      setError(err.response?.data?.error || "Failed to load admin data");
+      setLearners(l.data || []);
+      setInstructors(i.data || []);
+      setPendingInstructors(pi.data || []);
+      setPendingCourses(pc.data || []);
+      setApprovedCourses(ac.data || []);
+      setPayouts(pr.data || []);
     } finally {
       setLoading(false);
     }
   };
 
-  // ===============================
-  // Approve instructor
-  // ===============================
-  const approveInstructor = async (id) => {
-    await api.post(`/admin/approve-instructor/${id}`);
-    fetchAdminData();
-  };
-
-  // ===============================
-  // Approve course
-  // ===============================
-  const approveCourse = async (id) => {
-    await api.post(`/admin/approve-course/${id}`);
-    fetchAdminData();
-  };
-
-  // ===============================
-  // Reject course
-  // ===============================
-  const rejectCourse = async (id) => {
-    const reason = prompt("Enter rejection reason");
-    if (!reason) return;
-
-    await api.post(`/admin/reject-course/${id}`, { reason });
-    fetchAdminData();
-  };
-
   useEffect(() => {
-    fetchAdminData();
+    loadData();
   }, []);
 
-  if (loading) return <p>Loading admin dashboard...</p>;
-  if (error) return <p style={{ color: "red" }}>{error}</p>;
+  if (loading) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center text-xl font-semibold"
+        style={{ backgroundColor: "#E0E2DB", color: "#2E3532" }}
+      >
+        Loading Admin Dashboard...
+      </div>
+    );
+  }
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Admin Dashboard</h1>
+    <div
+      className="min-h-screen flex"
+      style={{ backgroundColor: "#E0E2DB", color: "#2E3532" }}
+    >
+      {/* ================= SIDEBAR ================= */}
+      <aside
+        className="w-72 p-6 flex flex-col shadow-xl"
+        style={{ backgroundColor: "#D2D4C8" }}
+      >
+        <h1 className="text-2xl font-bold">Admin Console</h1>
+        <p className="text-sm opacity-70 mb-6">
+          Platform Control Center
+        </p>
 
-      {/* ================= Pending Instructors ================= */}
-      <section>
-        <h2>Pending Instructors</h2>
-        {pendingInstructors.length === 0 && <p>No pending instructors</p>}
-        {pendingInstructors.map((i) => (
-          <div key={i.id}>
-            {i.name} ({i.email})
-            <button onClick={() => approveInstructor(i.id)}>Approve</button>
-          </div>
-        ))}
-      </section>
+        <nav className="space-y-2 flex-1">
+          {Object.keys(titleMap).map(key => (
+            <button
+              key={key}
+              onClick={() => setActive(key)}
+              className="w-full text-left px-4 py-2 rounded-lg font-medium transition"
+              style={{
+                backgroundColor:
+                  active === key ? "#F9FAF8" : "transparent",
+                color: "#2E3532",
+              }}
+            >
+              {titleMap[key]}
+            </button>
+          ))}
+        </nav>
 
-      <hr />
+        <button
+          onClick={logout}
+          className="mt-6 py-2 rounded-lg font-semibold transition"
+          style={{
+            backgroundColor: "#6F8F9B",
+            color: "#F9FAF8",
+          }}
+        >
+          Logout
+        </button>
+      </aside>
 
-      {/* ================= Pending Courses ================= */}
-      <section>
-        <h2>Pending Courses</h2>
-        {pendingCourses.length === 0 && <p>No pending courses</p>}
-        {pendingCourses.map((c) => (
-          <div key={c.id}>
-            <strong>{c.title}</strong> — ${c.price}
-            <button onClick={() => approveCourse(c.id)}>Approve</button>
-            <button onClick={() => rejectCourse(c.id)}>Reject</button>
-          </div>
-        ))}
-      </section>
+      {/* ================= MAIN ================= */}
+      <main
+        className="flex-1 p-8 overflow-y-auto"
+        style={{ backgroundColor: "#F9FAF8" }}
+      >
+        <h2 className="text-3xl font-bold mb-6">
+          {titleMap[active]}
+        </h2>
 
-      <hr />
-
-      {/* ================= Approved Learners ================= */}
-      <section>
-        <h2>Approved Learners</h2>
-        {approvedLearners.map((l) => (
-          <div key={l.id}>
-            {l.name} ({l.email})
-          </div>
-        ))}
-      </section>
-
-      <hr />
-
-      {/* ================= Approved Instructors ================= */}
-      <section>
-        <h2>Approved Instructors</h2>
-        {approvedInstructors.map((i) => (
-          <div key={i.id}>
-            {i.name} ({i.email})
-          </div>
-        ))}
-      </section>
-
-      <hr />
-
-      {/* ================= Approved Courses ================= */}
-      <section>
-        <h2>Approved Courses</h2>
-        {approvedCourses.map((c) => (
-          <div key={c.id} style={{ marginBottom: "10px" }}>
-            <strong>{c.title}</strong> — Instructor: {c.User?.name}
-            <ul>
-              {c.CourseMaterials?.map((m) => (
-                <li key={m.id}>
-                  [{m.type}] {m.content}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </section>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          {renderSection(active, {
+            learners,
+            instructors,
+            pendingInstructors,
+            pendingCourses,
+            approvedCourses,
+            payouts,
+            reload: loadData,
+          })}
+        </div>
+      </main>
     </div>
+  );
+}
+
+/* ================= CONTENT ================= */
+
+function renderSection(active, data) {
+  /* ===== COURSES (Pending + Approved) ===== */
+  if (active === "pending_courses" || active === "approved_courses") {
+    const courses =
+      active === "pending_courses"
+        ? data.pendingCourses
+        : data.approvedCourses;
+
+    if (!courses.length) {
+      return <p className="opacity-70">No records found</p>;
+    }
+
+    return courses.map(course => (
+      <Card key={course.id}>
+        <h3 className="text-lg font-bold">{course.title}</h3>
+
+        <p className="text-sm mt-1">
+          Status: <b>{course.status}</b>
+        </p>
+
+        <p className="text-sm mt-1 font-semibold text-green-700">
+          💰 Price: ৳{course.price}
+        </p>
+
+        {active === "pending_courses" && (
+          <ActionButton
+            label="Approve Course"
+            onClick={() =>
+              approveCourse(course.id).then(data.reload)
+            }
+          />
+        )}
+      </Card>
+    ));
+  }
+
+  /* ===== OTHER SECTIONS ===== */
+  const map = {
+    learners: data.learners,
+    instructors: data.instructors,
+    pending_instructors: data.pendingInstructors,
+    payouts: data.payouts,
+  }[active];
+
+  if (!map.length) {
+    return <p className="opacity-70">No records found</p>;
+  }
+
+  return map.map(item => (
+    <Card key={item.id}>
+      <h3 className="font-bold">
+        {item.User?.name || item.name}
+      </h3>
+
+      <p className="text-sm mt-1">
+        {active === "payouts"
+          ? `৳${item.amount}`
+          : item.email}
+      </p>
+
+      {active === "pending_instructors" && (
+        <ActionButton
+          label="Approve Instructor"
+          onClick={() =>
+            approveInstructor(item.id).then(data.reload)
+          }
+        />
+      )}
+
+      {active === "payouts" && (
+        <ActionButton
+          label="Approve Payout"
+          onClick={() =>
+            approvePayout(item.id).then(data.reload)
+          }
+        />
+      )}
+    </Card>
+  ));
+}
+
+/* ================= UI ================= */
+
+function Card({ children }) {
+  return (
+    <div
+      className="rounded-2xl p-6 shadow-md"
+      style={{
+        backgroundColor: "#D2D4C8",
+        color: "#2E3532",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+function ActionButton({ label, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="mt-4 w-full py-2 rounded-lg font-semibold transition"
+      style={{
+        backgroundColor: "#6F8F9B",
+        color: "#F9FAF8",
+      }}
+    >
+      {label}
+    </button>
   );
 }

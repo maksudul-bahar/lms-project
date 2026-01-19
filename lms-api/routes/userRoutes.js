@@ -7,6 +7,8 @@ const axios = require("axios");
 
 require("dotenv").config();
 
+const BANK_API = "http://localhost:4000/bank";
+
 // ===============================
 // Get user profile
 // ===============================
@@ -22,10 +24,10 @@ router.get("/profile", auth, async (req, res) => {
   });
 });
 
-// ===============================
-// Save EXISTING bank info (NO creation)
-// ===============================
-router.post("/bank", auth, async (req, res) => {
+/* =====================================================
+   LINK EXISTING BANK ACCOUNT (ONLY OPTION)
+===================================================== */
+router.post("/bank/link", auth, async (req, res) => {
   try {
     const { accountNumber, secret } = req.body;
 
@@ -35,20 +37,18 @@ router.post("/bank", auth, async (req, res) => {
       });
     }
 
-    // 1️⃣ Verify bank account exists (Bank API)
-    const bankApiUrl = "http://localhost:4000/bank";
-
+    // 1️⃣ Verify bank account exists
     const bankCheck = await axios
-  .get(`http://localhost:4000/bank/balance/${accountNumber}`)
-  .catch(() => null);
+      .get(`${BANK_API}/balance/${accountNumber}`)
+      .catch(() => null);
 
-if (!bankCheck || bankCheck.data?.error) {
-  return res.status(400).json({
-    error: "Bank account does not exist"
-  });
-}
+    if (!bankCheck || bankCheck.data?.error) {
+      return res.status(400).json({
+        error: "Bank account does not exist"
+      });
+    }
 
-    // 2️⃣ Hash secret and save reference in LMS
+    // 2️⃣ Save reference in LMS (hashed secret)
     const secretHash = await bcrypt.hash(secret, 10);
 
     req.user.bankAccountNumber = accountNumber;

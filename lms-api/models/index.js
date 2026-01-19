@@ -3,6 +3,9 @@ const Course = require("./Course");
 const CourseMaterial = require("./CourseMaterial");
 const Purchase = require("./Purchase");
 const Transaction = require("./Transaction");
+
+const InstructorPayout = require("./InstructorPayout");
+
 require("./InstructorTransaction");
 require("./Certificate");
 
@@ -32,6 +35,18 @@ Transaction.belongsTo(User, { foreignKey: "instructorId" });
 
 Course.hasMany(Transaction, { foreignKey: "courseId" });
 Transaction.belongsTo(Course, { foreignKey: "courseId" });
+
+
+
+// VERY IMPORTANT
+InstructorPayout.belongsTo(User, {
+  foreignKey: "instructorId"
+});
+
+User.hasMany(InstructorPayout, {
+  foreignKey: "instructorId"
+});
+
 
 
 module.exports = {

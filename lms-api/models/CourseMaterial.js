@@ -9,7 +9,8 @@ const CourseMaterial = sequelize.define("CourseMaterial", {
         primaryKey: true
     },
     type: { 
-        type: DataTypes.ENUM("text", "video", "audio", "mcq"),
+        type: DataTypes.ENUM("text", "video", "audio", "pdf", "mcq"),
+
         allowNull: false 
     },
     content: { type: DataTypes.TEXT, allowNull: false }, 
