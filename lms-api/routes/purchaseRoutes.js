@@ -61,21 +61,21 @@ router.post("/buy/:courseId", auth, async (req, res) => {
     // -------------------------------
     // Call BANK API
     // -------------------------------
-    // const bankResp = await axios.post(
-    //   `${process.env.BANK_API_URL}/transfer`,
-    //   {
-    //     from: user.bankAccountNumber,
-    //     to: process.env.LMS_BANK_ACCOUNT,
-    //     secret,
-    //     amount: course.price
-    //   }
-    // );
+    const bankResp = await axios.post(
+      `${process.env.BANK_API_URL}/transfer`,
+      {
+        from: user.bankAccountNumber,
+        to: process.env.LMS_BANK_ACCOUNT,
+        secret,
+        amount: course.price
+      }
+    );
 
-    // if (bankResp.data?.error) {
-    //   return res.status(400).json({
-    //     error: bankResp.data.error
-    //   });
-    // }
+    if (bankResp.data?.error) {
+      return res.status(400).json({
+        error: bankResp.data.error
+      });
+    }
 
     // -------------------------------
     // Save purchase
