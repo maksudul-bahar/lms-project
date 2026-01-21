@@ -7,7 +7,8 @@ const axios = require("axios");
 
 require("dotenv").config();
 
-const BANK_API = "http://localhost:4000/bank";
+const BANK_API = process.env.BANK_API_URL;
+
 
 // ===============================
 // Get user profile
