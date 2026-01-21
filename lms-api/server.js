@@ -8,6 +8,15 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "https://lms-project-omega-black.vercel.app/"
+  ],
+  credentials: true
+}));
+
+
 // models
 const User = require("./models/User");
 require("./models");  // <-- loads all models + associations

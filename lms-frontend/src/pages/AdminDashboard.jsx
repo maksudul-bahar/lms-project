@@ -252,3 +252,4 @@ function ActionButton({ label, onClick }) {
     </button>
   );
 }
+console.log("LMS API URL:", import.meta.env.VITE_LMS_API_URL);
