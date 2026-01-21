@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import { AuthProvider } from "./auth/AuthContext";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
@@ -25,92 +25,90 @@ import AdminDashboard from "./pages/AdminDashboard";
 function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
-        <Routes>
+      <Routes>
 
-          {/* ================= PUBLIC ================= */}
-          <Route path="/" element={<Courses />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/courses/:id" element={<CourseDetails />} />
+        {/* ================= PUBLIC ================= */}
+        <Route path="/" element={<Courses />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/courses/:id" element={<CourseDetails />} />
 
-          {/* ================= LEARNER ================= */}
-          <Route
-            path="/learner"
-            element={
-              <ProtectedRoute role="learner">
-                <LearnerDashboard />
-              </ProtectedRoute>
-            }
-          />
+        {/* ================= LEARNER ================= */}
+        <Route
+          path="/learner"
+          element={
+            <ProtectedRoute role="learner">
+              <LearnerDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/learner/course/:id"
-            element={
-              <ProtectedRoute role="learner">
-                <CoursePlayer />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/learner/course/:id"
+          element={
+            <ProtectedRoute role="learner">
+              <CoursePlayer />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/learner/certificate/:id"
-            element={
-              <ProtectedRoute role="learner">
-                <Certificate />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/learner/certificate/:id"
+          element={
+            <ProtectedRoute role="learner">
+              <Certificate />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* ================= INSTRUCTOR ================= */}
-          <Route
-            path="/instructor"
-            element={
-              <ProtectedRoute role="instructor">
-                <InstructorDashboard />
-              </ProtectedRoute>
-            }
-          />
+        {/* ================= INSTRUCTOR ================= */}
+        <Route
+          path="/instructor"
+          element={
+            <ProtectedRoute role="instructor">
+              <InstructorDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/instructor/upload"
-            element={
-              <ProtectedRoute role="instructor">
-                <UploadCourse />
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/instructor/upload"
+          element={
+            <ProtectedRoute role="instructor">
+              <UploadCourse />
+            </ProtectedRoute>
+          }
+        />
 
-          <Route
-            path="/instructor/upload-material/:courseId"
-            element={
-              <ProtectedRoute role="instructor">
-                <UploadMaterial />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-  path="/instructor/course/:id"
-  element={
-    <ProtectedRoute role="instructor">
-      <InstructorCourseDetails />
-    </ProtectedRoute>
-  }
-/>
+        <Route
+          path="/instructor/upload-material/:courseId"
+          element={
+            <ProtectedRoute role="instructor">
+              <UploadMaterial />
+            </ProtectedRoute>
+          }
+        />
 
+        <Route
+          path="/instructor/course/:id"
+          element={
+            <ProtectedRoute role="instructor">
+              <InstructorCourseDetails />
+            </ProtectedRoute>
+          }
+        />
 
-          {/* ================= ADMIN ================= */}
-          <Route
-            path="/admin"
-            element={
-              <ProtectedRoute role="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
+        {/* ================= ADMIN ================= */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
 
-        </Routes>
-      </BrowserRouter>
+      </Routes>
     </AuthProvider>
   );
 }
