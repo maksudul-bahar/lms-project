@@ -65,4 +65,30 @@ router.post("/bank/link", auth, async (req, res) => {
   }
 });
 
+// ===============================
+// Get linked bank balance
+// ===============================
+router.get("/bank/balance", auth, async (req, res) => {
+  if (!req.user.bankAccountNumber) {
+    return res.status(400).json({
+      error: "No bank account linked"
+    });
+  }
+
+  try {
+    const resp = await axios.get(
+      `${BANK_API}/bank/balance/${req.user.bankAccountNumber}`
+    );
+
+    res.json({
+      balance: resp.data.balance
+    });
+  } catch (err) {
+    res.status(500).json({
+      error: "Failed to fetch bank balance"
+    });
+  }
+});
+
+
 module.exports = router;

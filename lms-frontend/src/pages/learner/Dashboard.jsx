@@ -8,7 +8,9 @@ import {
   getAllCourses,
   purchaseCourse
 } from "../../api/learnerApi";
-import { linkBankAccount } from "../../api/userApi";
+
+import { linkBankAccount, getBankBalance } from "../../api/userApi"; // <-- add balance
+
 import { logout } from "../../utils/logout";
 
 export default function LearnerDashboard() {
@@ -25,6 +27,8 @@ export default function LearnerDashboard() {
   const [purchaseCourseId, setPurchaseCourseId] = useState(null);
   const [purchaseSecret, setPurchaseSecret] = useState("");
 
+  const [bankBalance, setBankBalance] = useState(null); // <-- new state
+
   /* ================= LOAD DATA ================= */
   useEffect(() => {
     loadData();
@@ -34,10 +38,12 @@ export default function LearnerDashboard() {
     const profileRes = await getLearnerProfile();
     const myRes = await getMyCourses();
     const allRes = await getAllCourses();
+    const balanceRes = await getBankBalance(); // <-- fetch balance
 
     setProfile(profileRes.data);
     setMyCourses(myRes.data);
     setAllCourses(allRes.data);
+    setBankBalance(balanceRes.data?.balance ?? null); // <-- set balance
   };
 
   /* ================= BANK LINK ================= */
@@ -45,7 +51,7 @@ export default function LearnerDashboard() {
     await linkBankAccount(bank);
     setShowBankForm(false);
     setBank({ accountNumber: "", secret: "" });
-    loadData(); // refresh profile
+    loadData(); // refresh profile + balance
   };
 
   /* ================= PURCHASE ================= */
@@ -150,6 +156,19 @@ export default function LearnerDashboard() {
         {/* ================= AVAILABLE COURSES ================= */}
         {activeTab === "available" && (
           <Section title="🛒 Available Courses">
+
+            {/* <-- NEW: Show bank balance here */}
+            <div className="mb-4 p-4 rounded-xl bg-white">
+              <h3 className="font-bold">
+                💰 Bank Balance:
+              </h3>
+              <p className="text-sm">
+                {profile.bankAccountNumber
+                  ? `৳${bankBalance ?? 0}`
+                  : "No bank linked yet"}
+              </p>
+            </div>
+
             {availableCourses.length === 0 ? (
               <Empty text="No new courses available." />
             ) : (

@@ -10,6 +10,9 @@ import {
   getPayoutRequests,
   approvePayout
 } from "../api/admin";
+
+import { getBankBalance } from "../api/userApi"; // <-- use this
+
 import { logout } from "../utils/logout";
 
 const titleMap = {
@@ -32,16 +35,19 @@ export default function AdminDashboard() {
   const [approvedCourses, setApprovedCourses] = useState([]);
   const [payouts, setPayouts] = useState([]);
 
+  const [bankBalance, setBankBalance] = useState(null); // <-- balance state
+
   const loadData = async () => {
     try {
       setLoading(true);
-      const [l, i, pi, pc, ac, pr] = await Promise.all([
+      const [l, i, pi, pc, ac, pr, bb] = await Promise.all([
         getApprovedLearners(),
         getApprovedInstructors(),
         getPendingInstructors(),
         getPendingCourses(),
         getApprovedCourses(),
         getPayoutRequests(),
+        getBankBalance() // <-- fetch from userApi
       ]);
 
       setLearners(l.data || []);
@@ -50,6 +56,7 @@ export default function AdminDashboard() {
       setPendingCourses(pc.data || []);
       setApprovedCourses(ac.data || []);
       setPayouts(pr.data || []);
+      setBankBalance(bb.data?.balance ?? null); // <-- set balance
     } finally {
       setLoading(false);
     }
@@ -131,6 +138,7 @@ export default function AdminDashboard() {
             pendingCourses,
             approvedCourses,
             payouts,
+            bankBalance, // pass balance
             reload: loadData,
           })}
         </div>
@@ -142,6 +150,45 @@ export default function AdminDashboard() {
 /* ================= CONTENT ================= */
 
 function renderSection(active, data) {
+  /* ===== PAYOUTS ===== */
+  if (active === "payouts") {
+    return (
+      <>
+        <Card>
+          <h3 className="font-bold text-lg">Admin Bank Balance</h3>
+          <p className="mt-1 text-sm">
+            {data.bankBalance === null
+              ? "No bank linked"
+              : `৳${data.bankBalance}`}
+          </p>
+        </Card>
+
+        {data.payouts.length === 0 && (
+          <p className="opacity-70">No payout requests found</p>
+        )}
+
+        {data.payouts.map(payout => (
+          <Card key={payout.id}>
+            <h3 className="font-bold">
+              {payout.User?.name || payout.name}
+            </h3>
+
+            <p className="text-sm mt-1">
+              Amount: <b>৳{payout.amount}</b>
+            </p>
+
+            <ActionButton
+              label="Approve Payout"
+              onClick={() =>
+                approvePayout(payout.id).then(data.reload)
+              }
+            />
+          </Card>
+        ))}
+      </>
+    );
+  }
+
   /* ===== COURSES (Pending + Approved) ===== */
   if (active === "pending_courses" || active === "approved_courses") {
     const courses =
@@ -182,7 +229,6 @@ function renderSection(active, data) {
     learners: data.learners,
     instructors: data.instructors,
     pending_instructors: data.pendingInstructors,
-    payouts: data.payouts,
   }[active];
 
   if (!map.length) {
@@ -196,9 +242,7 @@ function renderSection(active, data) {
       </h3>
 
       <p className="text-sm mt-1">
-        {active === "payouts"
-          ? `৳${item.amount}`
-          : item.email}
+        {item.email}
       </p>
 
       {active === "pending_instructors" && (
@@ -206,15 +250,6 @@ function renderSection(active, data) {
           label="Approve Instructor"
           onClick={() =>
             approveInstructor(item.id).then(data.reload)
-          }
-        />
-      )}
-
-      {active === "payouts" && (
-        <ActionButton
-          label="Approve Payout"
-          onClick={() =>
-            approvePayout(item.id).then(data.reload)
           }
         />
       )}
@@ -252,4 +287,3 @@ function ActionButton({ label, onClick }) {
     </button>
   );
 }
-console.log("LMS API URL:", import.meta.env.VITE_LMS_API_URL);
