@@ -40,7 +40,7 @@ router.post("/bank/link", auth, async (req, res) => {
 
     // 1️⃣ Verify bank account exists
     const bankCheck = await axios
-      .get(`${BANK_API}/balance/${accountNumber}`)
+      .get(`${BANK_API}/bank/balance/${accountNumber}`)
       .catch(() => null);
 
     if (!bankCheck || bankCheck.data?.error) {

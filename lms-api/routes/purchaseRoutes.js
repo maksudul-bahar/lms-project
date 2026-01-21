@@ -62,7 +62,7 @@ router.post("/buy/:courseId", auth, async (req, res) => {
     // Call BANK API
     // -------------------------------
     const bankResp = await axios.post(
-      `${process.env.BANK_API_URL}/transfer`,
+      `${process.env.BANK_API_URL}/bank/transfer`,
       {
         from: user.bankAccountNumber,
         to: process.env.LMS_BANK_ACCOUNT,

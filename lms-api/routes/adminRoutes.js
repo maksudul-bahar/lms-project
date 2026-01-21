@@ -216,7 +216,7 @@ router.post("/approve-payout/:id", auth, adminOnly, async (req, res) => {
 
   // 🏦 Bank transfer
   
-await axios.post(`${process.env.BANK_API_URL}/transfer`, {
+await axios.post(`${process.env.BANK_API_URL}/bank/transfer`, {
   from: "ADMIN_BANK",
   secret: "ADMIN_SECRET",
   to: instructor.bankAccountNumber,
