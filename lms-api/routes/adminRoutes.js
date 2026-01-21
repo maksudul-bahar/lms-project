@@ -215,12 +215,13 @@ router.post("/approve-payout/:id", auth, adminOnly, async (req, res) => {
   }
 
   // 🏦 Bank transfer
-  await axios.post("http://localhost:4000/bank/transfer", {
-    from: "ADMIN_BANK",
-    secret: "ADMIN_SECRET",
-    to: instructor.bankAccountNumber,
-    amount: payout.amount
-  });
+  
+await axios.post(`${process.env.BANK_API_URL}/transfer`, {
+  from: "ADMIN_BANK",
+  secret: "ADMIN_SECRET",
+  to: instructor.bankAccountNumber,
+  amount: payout.amount
+});
 
   payout.status = "approved";
   await payout.save();
